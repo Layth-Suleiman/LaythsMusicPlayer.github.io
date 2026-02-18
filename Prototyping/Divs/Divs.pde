@@ -1,4 +1,4 @@
-/*Divs 2D Rectamgles
+-`/*Divs 2D Rectamgles
 */
 //
 println(displayWidth, displayHeight);
@@ -11,6 +11,26 @@ int paperHeight = 216;
 float DivX = appWidth * ??? / paperWidth;
 float DivY = appHeight * ??? / paperHeight;
 float DivWidth = appWidth * ??? / paperWidth;
-float DivHeight = appHeight * ??? / paperHeight;
+float DivHeight = appH  eight * ??? / paperHeight;/*-
 
+rect( songTitleDivX, songTitleDivY, SongTitleDivWidith, songTitleHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
+rect( DivX, DivY, DivWidth, DivHeight );
 rect( DivX, DivY, DivWidth, DivHeight );
