@@ -1,6 +1,7 @@
 /*
-  Left Column with 9 Sections
-  Top section is larger than the 8 below it
+  Responsive Layout - Sharp Edges Version
+  Left: 9 Vertical Sections
+  Right: 11 Horizontal Sections at the bottom
 */
 
 int AppWidth, AppHeight;
@@ -19,45 +20,57 @@ void draw() {
   stroke(0);
   strokeWeight(2);
 
-  // --- 1. LEFT MAIN CONTAINER ---
+  float edgePadding = AppHeight * 50 / GUIHeight;
+  float innerPad = AppWidth * 10 / GUIWidth;
+
+  // --- 1. LEFT CONTAINER ---
   float leftX = AppWidth * 50 / GUIWidth;
-  float leftY = AppHeight * 50 / GUIHeight;
   float leftW = AppWidth * 400 / GUIWidth;
   float leftH = AppHeight * 980 / GUIHeight;
-  rect(leftX, leftY, leftW, leftH, 10);
-
-  // --- INTERNAL SECTIONS FOR LEFT CONTAINER ---
-  float innerPadding = AppWidth * 10 / GUIWidth;
-  float sectionX = leftX + innerPadding;
-  float sectionW = leftW - (innerPadding * 2);
- 
-  // Top Section (Large)
-  float topSectionH = AppHeight * 240 / GUIHeight;
-  fill(230); // Slight tint for the top
-  rect(sectionX, leftY + innerPadding, sectionW, topSectionH, 5);
- 
-  // Calculate remaining height for the other 8 sections
-  // Subtracting the top section height and the extra gaps
-  float remainingH = leftH - topSectionH - (innerPadding * 3);
-  float smallSectionH = remainingH / 8.5; // Using 8.5 to leave a little breathing room at the bottom
-  float gap = AppHeight * 6 / GUIHeight; // Gap between small sections
-
-  fill(255);
+  rect(leftX, edgePadding, leftW, leftH); 
+  
+  // Left Vertical Sections
+  float leftSectionW = leftW - (innerPad * 2);
+  float leftTopH = AppHeight * 300 / GUIHeight;
+  rect(leftX + innerPad, edgePadding + innerPad, leftSectionW, leftTopH); 
+  
+  float leftSmallH = (leftH - leftTopH - (innerPad * 11)) / 7.5;
   for (int i = 0; i < 8; i++) {
-    float sectionY = leftY + innerPadding + topSectionH + gap + (i * (smallSectionH + gap));
-    rect(sectionX, sectionY, sectionW, smallSectionH, 5);
+    rect(leftX + innerPad, edgePadding + innerPad + leftTopH + innerPad + (i * (leftSmallH + innerPad/2)), leftSectionW, leftSmallH);
   }
 
-  // --- 2. MIDDLE RECTANGLE (Thinner) ---
+  // --- 2. MIDDLE CONTAINER ---
   float midX = AppWidth * 500 / GUIWidth;
   float midW = AppWidth * 620 / GUIWidth;
-  rect(midX, leftY, midW, leftH, 10);
+  rect(midX, edgePadding, midW, leftH); // Removed rounding
 
-  // --- 3. RIGHT RECTANGLE (Thicker) ---
+  // --- 3. RIGHT CONTAINER ---
   float rightX = AppWidth * 1170 / GUIWidth;
   float rightW = AppWidth * 700 / GUIWidth;
-  rect(rightX, leftY, rightW, leftH, 10);
- 
+  rect(rightX, edgePadding, rightW, leftH); // Removed rounding
+
+  // Large Square inside Right Container
+  float squareSize = rightW - 100; 
+  float squareX = rightX + (squareSize/11);
+  float squareY = edgePadding + (squareSize/4);
+  fill(250); 
+  rect(squareX, squareY, squareSize, squareSize); // Removed rounding
+  fill(255);
+
+  // Right Internal Logic: 11 HORIZONTAL Sections at the Bottom
+  float totalAvailableW = rightW - (innerPad * 2);
+  float gap = AppWidth * 5 / GUIWidth; 
+  float sectionW = (totalAvailableW - (gap * 10)) / 11;
+  float sectionH = AppHeight * 60 / GUIHeight;
+  float sectionY = (edgePadding + leftH) - sectionH - innerPad;
+
+  fill(245);
+  for (int i = 0; i < 11; i++) {
+    float xPos = rightX + innerPad + (i * (sectionW + gap));
+    rect(xPos, sectionY, sectionW, sectionH); // Removed rounding
+  }
+  
+  fill(255);
   AppWidth = width;
   AppHeight = height;
 }
