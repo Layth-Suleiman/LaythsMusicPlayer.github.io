@@ -1,10 +1,10 @@
-println("Hello Music Player");
+println("HelloMusicPlayer");
 //
-print("Hello");
-print("MusicPlayer");
+print("Hello my name is Layth and my Birthday is Jan 10");
+print("My favourite colour is red");
 //
-print("Hello");
-print("\tMusicPlayer");
+print("My favourite sports team is arsenal");
+print("\tAnd they are going to win the treble this season");
 //
-print("Hello");
-print("\nMusicPlayer");
+print("Sincerly Layth");
+print("\nPlease give this 100");
