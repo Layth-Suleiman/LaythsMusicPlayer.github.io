@@ -1,5 +1,5 @@
 // 1. Setup the Canvas
-size(1000, 600); // Static mode requires size() instead of fullScreen()
+ fullScreen();
 background(240);
 fill(255);
 stroke(0);
