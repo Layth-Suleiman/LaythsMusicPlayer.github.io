@@ -1,80 +1,94 @@
-/* Music App, Final Project
-*/
-//Minim Library
+/* Music App, Final Project */
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 import ddf.minim.effects.*;
 import ddf.minim.signals.*;
 import ddf.minim.spi.*;
 import ddf.minim.ugens.*;
+
 //
-//Global Variables
+// Global Variables
 //
-void setup() {}//End Setup
-//
-void draw (){}// End Draw
-//
-void mousePressed(){}//End Mouse Pressed
-//
-// 1. Setup the Canvas
- fullScreen();
-background(240);
-fill(255);
-stroke(0);
-strokeWeight(2);
+float AppWidth, AppHeight, GUIWidth, GUIHeight;
+float edgePadding, innerPad;
+float leftX, leftW, leftH;
+float leftSectionW, leftTopH, leftSmallH;
+float midX, midW;
+float rightX, rightW;
+float squareSize, squareX, squareY;
+float totalAvailableW, gap, sectionW, sectionH, sectionY;
 
-// 2. Set up scaling variables
-float AppWidth = width;
-float AppHeight = height;
-float GUIWidth = 1920;
-float GUIHeight = 1080;
+void setup() {
+  fullScreen();
+  background(240);
+  
+  // 1. Set up scaling variables
+  AppWidth = width;
+  AppHeight = height;
+  GUIWidth = 1920;
+  GUIHeight = 1080;
 
-float edgePadding = AppHeight * 50 / GUIHeight;
-float innerPad = AppWidth * 10 / GUIWidth;
+  edgePadding = AppHeight * 50 / GUIHeight;
+  innerPad = AppWidth * 10 / GUIWidth;
 
-// --- 3. LEFT CONTAINER ---
-float leftX = AppWidth * 50 / GUIWidth;
-float leftW = AppWidth * 400 / GUIWidth;
-float leftH = AppHeight * 980 / GUIHeight;
-rect(leftX, edgePadding, leftW, leftH);  
+  // 2. LEFT CONTAINER Logic
+  leftX = AppWidth * 50 / GUIWidth;
+  leftW = AppWidth * 400 / GUIWidth;
+  leftH = AppHeight * 980 / GUIHeight;
+  leftSectionW = leftW - (innerPad * 2);
+  leftTopH = AppHeight * 300 / GUIHeight;
+  leftSmallH = (leftH - leftTopH - (innerPad * 11)) / 7.5;
 
-// Left Vertical Sections
-float leftSectionW = leftW - (innerPad * 2);
-float leftTopH = AppHeight * 300 / GUIHeight;
-rect(leftX + innerPad, edgePadding + innerPad, leftSectionW, leftTopH);  
+  // 3. MIDDLE CONTAINER Logic
+  midX = AppWidth * 500 / GUIWidth;
+  midW = AppWidth * 620 / GUIWidth;
 
-float leftSmallH = (leftH - leftTopH - (innerPad * 11)) / 7.5;
-for (int i = 0; i < 8; i++) {
-  rect(leftX + innerPad, edgePadding + innerPad + leftTopH + innerPad + (i * (leftSmallH + innerPad/2)), leftSectionW, leftSmallH);
-}
+  // 4. RIGHT CONTAINER Logic
+  rightX = AppWidth * 1170 / GUIWidth;
+  rightW = AppWidth * 700 / GUIWidth;
+  
+  // Large Square inside Right Container
+  squareSize = rightW - 100; 
+  squareX = rightX + (squareSize/11);
+  squareY = edgePadding + (squareSize/4);
 
-// --- 4. MIDDLE CONTAINER ---
-float midX = AppWidth * 500 / GUIWidth;
-float midW = AppWidth * 620 / GUIWidth;
-rect(midX, edgePadding, midW, leftH); 
+  // Right Internal Logic: 11 Horizontal Sections
+  totalAvailableW = rightW - (innerPad * 2);
+  gap = AppWidth * 5 / GUIWidth; 
+  sectionW = (totalAvailableW - (gap * 10)) / 11;
+  sectionH = AppHeight * 60 / GUIHeight;
+  sectionY = (edgePadding + leftH) - sectionH - innerPad;
+} //End Setup
 
-// --- 5. RIGHT CONTAINER ---
-float rightX = AppWidth * 1170 / GUIWidth;
-float rightW = AppWidth * 700 / GUIWidth;
-rect(rightX, edgePadding, rightW, leftH); 
+void draw() {
+  background(240); // Refreshes background every frame
+  fill(255);
+  stroke(0);
+  strokeWeight(2);
 
-// Large Square inside Right Container
-float squareSize = rightW - 100; 
-float squareX = rightX + (squareSize/11);
-float squareY = edgePadding + (squareSize/4);
-fill(250); 
-rect(squareX, squareY, squareSize, squareSize); 
-fill(255);
+  // --- DRAW LEFT CONTAINER ---
+  rect(leftX, edgePadding, leftW, leftH);  
+  rect(leftX + innerPad, edgePadding + innerPad, leftSectionW, leftTopH);  
+  for (int i = 0; i < 8; i++) {
+    rect(leftX + innerPad, edgePadding + innerPad + leftTopH + innerPad + (i * (leftSmallH + innerPad/2)), leftSectionW, leftSmallH);
+  }
 
-// Right Internal Logic: 11 Horizontal Sections
-float totalAvailableW = rightW - (innerPad * 2);
-float gap = AppWidth * 5 / GUIWidth; 
-float sectionW = (totalAvailableW - (gap * 10)) / 11;
-float sectionH = AppHeight * 60 / GUIHeight;
-float sectionY = (edgePadding + leftH) - sectionH - innerPad;
+  // --- DRAW MIDDLE CONTAINER ---
+  rect(midX, edgePadding, midW, leftH); 
 
-fill(245);
-for (int i = 0; i < 11; i++) {
-  float xPos = rightX + innerPad + (i * (sectionW + gap));
-  rect(xPos, sectionY, sectionW, sectionH);
-}
+  // --- DRAW RIGHT CONTAINER ---
+  rect(rightX, edgePadding, rightW, leftH); 
+  
+  // Square in Right
+  fill(250); 
+  rect(squareX, squareY, squareSize, squareSize); 
+  
+  // 11 Sections in Right
+  fill(245);
+  for (int i = 0; i < 11; i++) {
+    float xPos = rightX + innerPad + (i * (sectionW + gap));
+    rect(xPos, sectionY, sectionW, sectionH);
+  }
+} // End Draw
+
+void mousePressed() {} // End Mouse Pressed
