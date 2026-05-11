@@ -21,6 +21,8 @@ float totalAvailableW, gap, sectionW, sectionH, sectionY;
 void setup() {
   fullScreen();
   background(240);
+  rectMode(CORNER);
+  ellipseMode(CENTER);
   
   // 1. Set up scaling variables
   AppWidth = width;
@@ -61,7 +63,7 @@ void setup() {
 } //End Setup
 
 void draw() {
-  background(240); // Refreshes background every frame
+  background(240); 
   fill(255);
   stroke(0);
   strokeWeight(2);
@@ -77,18 +79,106 @@ void draw() {
   rect(midX, edgePadding, midW, leftH); 
 
   // --- DRAW RIGHT CONTAINER ---
-  rect(rightX, edgePadding, rightW, leftH); 
+  rect(rightX, edgePadding, rightW, leftH);  
   
   // Square in Right
   fill(250); 
-  rect(squareX, squareY, squareSize, squareSize); 
+  rect(squareX, squareY, squareSize, squareSize);  
   
-  // 11 Sections in Right
-  fill(245);
+  // 11 Sections in Right with Icons
   for (int i = 0; i < 11; i++) {
     float xPos = rightX + innerPad + (i * (sectionW + gap));
+    fill(245);
+    stroke(0);
+    strokeWeight(2);
     rect(xPos, sectionY, sectionW, sectionH);
+    
+    // Draw music icons (0-10)
+    drawMusicIcon(i, xPos, sectionY, sectionW, sectionH);
   }
 } // End Draw
 
 void mousePressed() {} // End Mouse Pressed
+
+// --- ICON HELPER FUNCTION ---
+void drawMusicIcon(int index, float x, float y, float w, float h) {
+  float centerX = x + w/2;
+  float centerY = y + h/2;
+  float s = w * 0.4; // Scale size of icons
+  
+  fill(50); 
+  stroke(50);
+  strokeWeight(2);
+  strokeJoin(ROUND);
+
+  if (index == 0) { // Play
+    triangle(centerX - s/2, centerY - s/2, centerX - s/2, centerY + s/2, centerX + s/2, centerY);
+  } 
+  else if (index == 1) { // Pause
+    rect(centerX - s/2, centerY - s/2, s/3, s);
+    rect(centerX + s/6, centerY - s/2, s/3, s);
+  } 
+  else if (index == 2) { // Stop
+    rect(centerX - s/2, centerY - s/2, s, s);
+  } 
+  else if (index == 3) { // Fast Forward
+    triangle(centerX - s/2, centerY - s/2, centerX - s/2, centerY + s/2, centerX, centerY);
+    triangle(centerX, centerY - s/2, centerX, centerY + s/2, centerX + s/2, centerY);
+  } 
+  else if (index == 4) { // Skip
+    triangle(centerX - s/2, centerY - s/2, centerX - s/2, centerY + s/2, centerX, centerY);
+    rect(centerX, centerY - s/2, s/4, s);
+  } 
+  else if (index == 5) { // Faster Forward
+    triangle(centerX - s/2, centerY - s/2, centerX - s/2, centerY + s/2, centerX - s/6, centerY);
+    triangle(centerX - s/6, centerY - s/2, centerX - s/6, centerY + s/2, centerX + s/6, centerY);
+    triangle(centerX + s/6, centerY - s/2, centerX + s/6, centerY + s/2, centerX + s/2, centerY);
+  } 
+  else if (index == 6) { // Loop
+    noFill();
+    arc(centerX, centerY, s, s, 0, PI + HALF_PI);
+    fill(50);
+    pushMatrix();
+    translate(centerX + s/2, centerY);
+    triangle(0, 0, -s/6, -s/6, s/6, -s/6);
+    popMatrix();
+  } 
+  else if (index == 7) { // Unloop
+    noFill();
+    ellipse(centerX, centerY, s, s);
+    line(centerX - s/2, centerY + s/2, centerX + s/2, centerY - s/2);
+  } 
+  else if (index == 8) { // Loop Once
+    noFill();
+    arc(centerX, centerY, s, s, 0, PI + HALF_PI);
+    fill(50);
+    textSize(s * 0.6);
+    textAlign(CENTER, CENTER);
+    text("1", centerX, centerY);
+  }
+  else if (index == 9) { // Volume Up
+    // Speaker Body
+    rect(centerX - s/2, centerY - s/4, s/4, s/2);
+    beginShape();
+    vertex(centerX - s/4, centerY - s/4);
+    vertex(centerX, centerY - s/2);
+    vertex(centerX, centerY + s/2);
+    vertex(centerX - s/4, centerY + s/4);
+    endShape(CLOSE);
+    // Plus Sign
+    line(centerX + s/4, centerY, centerX + s/2 + s/4, centerY);
+    line(centerX + s/2, centerY - s/4, centerX + s/2, centerY + s/4);
+  }
+  else if (index == 10) { // Volume Down
+    // Speaker Body
+    rect(centerX - s/2, centerY - s/4, s/4, s/2);
+    beginShape();
+    vertex(centerX - s/4, centerY - s/4);
+    vertex(centerX, centerY - s/2);
+    vertex(centerX, centerY + s/2);
+    vertex(centerX - s/4, centerY + s/4);
+    endShape(CLOSE);
+    // Minus Sign
+    line(centerX + s/4, centerY, centerX + s/2 + s/4, centerY);
+  }
+}
