@@ -88,7 +88,14 @@ void draw() {
   // 11 Sections in Right with Icons
   for (int i = 0; i < 11; i++) {
     float xPos = rightX + innerPad + (i * (sectionW + gap));
-    fill(245);
+    
+    // Bounding box collision checking for mouse hover
+    if (mouseX >= xPos && mouseX <= xPos + sectionW && mouseY >= sectionY && mouseY <= sectionY + sectionH) {
+      fill(200); // Distinct grey when mouse hovers over it
+    } else {
+      fill(245); // Default off-white background
+    }
+    
     stroke(0);
     strokeWeight(2);
     rect(xPos, sectionY, sectionW, sectionH);
