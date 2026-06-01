@@ -6,13 +6,18 @@ import ddf.minim.effects.*;
 import ddf.minim.signals.*;
 import ddf.minim.spi.*;
 import ddf.minim.ugens.*;
+import java.io.File;
+import java.io.FilenameFilter;
 
 // Music Variables
 Minim minim;
 AudioPlayer song;
 AudioPlayer click;
 
-String songTitle = "Never";
+String songTitle = "";
+StringList playList;
+int currentSongIndex = 0;
+String absoluteMusicPath = "";
 
 // App Variables
 float AppWidth, AppHeight, GUIWidth, GUIHeight;
@@ -40,19 +45,58 @@ void setup() {
   ellipseMode(CENTER);
 
   // -------------------------
-  // MUSIC
+  // MUSIC DIRECTORY SCANNING
   // -------------------------
   minim = new Minim(this);
-
-  String musicPath = "../../Dependencies/Music/" + songTitle + ".MP3";
-  String clickPath = "../../Dependencies/SoundEffects/MouseClick.mp3";
-
-  song = minim.loadFile(musicPath);
-  click = minim.loadFile(clickPath);
-
-  if (song != null) {
-    song.play();
+  playList = new StringList();
+  
+  // Try 3 different ways to locate your music folder path
+  String[] pathChoices = {
+    sketchPath("../../Dependencies/Music/"),
+    sketchPath("../Dependencies/Music/"),
+    sketchPath("data/") 
+  };
+  
+  File folder = null;
+  for (String path : pathChoices) {
+    File checkFolder = new File(path);
+    if (checkFolder.exists() && checkFolder.isDirectory()) {
+      folder = checkFolder;
+      absoluteMusicPath = path;
+      break;
+    }
   }
+  
+  // Scan the folder if found
+  if (folder != null) {
+    println("SUCCESS: Found music folder at: " + absoluteMusicPath);
+    String[] files = folder.list(new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        return name.toLowerCase().endsWith(".mp3");
+      }
+    });
+    
+    if (files != null && files.length > 0) {
+      for (String file : files) {
+        println("FOUND AUDIO FILE: " + file);
+        // Save the clean display title (without .mp3)
+        String cleanName = file.substring(0, file.lastIndexOf('.'));
+        playList.append(cleanName);
+      }
+    }
+  }
+
+  // Fallback protection if zero files were scanned
+  if (playList.size() == 0) {
+    println("WARNING: No music folder found. Defaulting to 'Never'.");
+    playList.append("Never"); 
+  }
+
+  songTitle = playList.get(currentSongIndex);
+  loadTrack(songTitle);
+
+  String clickPath = "../../Dependencies/SoundEffects/MouseClick.mp3";
+  click = minim.loadFile(clickPath);
 
   // -------------------------
   // GUI SIZES
@@ -103,6 +147,39 @@ void setup() {
   sectionY = (edgePadding + leftH) - sectionH - innerPad;
 }
 
+// Helper utility to switch tracks cleanly across case-sensitive file naming systems
+void loadTrack(String title) {
+  if (song != null) {
+    song.close();
+  }
+  
+  // Try loading directly from our discovered folder if we found one
+  if (!absoluteMusicPath.equals("")) {
+    File lowerCheck = new File(absoluteMusicPath + title + ".mp3");
+    if (lowerCheck.exists()) {
+      song = minim.loadFile(absoluteMusicPath + title + ".mp3");
+    } else {
+      song = minim.loadFile(absoluteMusicPath + title + ".MP3");
+    }
+  } 
+  
+  // Fallback to original hardcoded relative path format if automatic detection missed
+  if (song == null) {
+    String lowercasePath = "../../Dependencies/Music/" + title + ".mp3";
+    String uppercasePath = "../../Dependencies/Music/" + title + ".MP3";
+    File lowFile = new File(sketchPath(lowercasePath));
+    if (lowFile.exists()) {
+      song = minim.loadFile(lowercasePath);
+    } else {
+      song = minim.loadFile(uppercasePath);
+    }
+  }
+  
+  if (song != null) {
+    song.play();
+  }
+}
+
 void draw() {
 
   background(240);
@@ -123,20 +200,26 @@ void draw() {
     leftTopH
   );
 
+  // Render the playlist slots with titles dynamically populated
   for (int i = 0; i < 8; i++) {
-
-    rect(
-      leftX + innerPad,
-      edgePadding + innerPad + leftTopH + innerPad +
-      (i * (leftSmallH + innerPad/2)),
-      leftSectionW,
-      leftSmallH
-    );
+    float boxY = edgePadding + innerPad + leftTopH + innerPad + (i * (leftSmallH + innerPad/2));
+    
+    fill(255);
+    rect(leftX + innerPad, boxY, leftSectionW, leftSmallH);
+    
+    // Write track names onto the sidebar list slots if they exist
+    if (i < playList.size()) {
+      fill(50);
+      textSize(16);
+      textAlign(LEFT, CENTER);
+      text(playList.get(i), leftX + (innerPad * 2), boxY + (leftSmallH / 2));
+    }
   }
 
   // -------------------------
   // MIDDLE BOX
   // -------------------------
+  fill(255);
   rect(midX, edgePadding, midW, leftH);
 
   // -------------------------
@@ -171,7 +254,7 @@ void draw() {
   // SONG TITLE
   fill(0, 180, 80);
 
-  textSize(60);
+  textSize(45); // Adjusted down slightly from 60 to prevent long titles wrapping outside the box
 
   text(
     songTitle,
@@ -184,7 +267,7 @@ void draw() {
 
   textSize(30);
 
-  if (song.isPlaying()) {
+  if (song != null && song.isPlaying()) {
 
     text(
       "NOW PLAYING",
@@ -232,9 +315,81 @@ void draw() {
 void mousePressed() {
 
   if (click != null) {
-
     click.rewind();
     click.play();
+  }
+
+  // Process Controls Click Mapping Loop
+  for (int i = 0; i < 11; i++) {
+    float xPos = rightX + innerPad + (i * (sectionW + gap));
+
+    if (mouseX >= xPos && mouseX <= xPos + sectionW &&
+        mouseY >= sectionY && mouseY <= sectionY + sectionH) {
+      
+      if (song != null) {
+        
+        // 0: Play
+        if (i == 0) {
+          song.play();
+        }
+        
+        // 1: Pause
+        else if (i == 1) {
+          song.pause();
+        }
+        
+        // 2: Stop
+        else if (i == 2) {
+          song.pause();
+          song.rewind();
+        }
+        
+        // 3: Fast Forward (Skip 5 seconds)
+        else if (i == 3) {
+          song.skip(5000); 
+        }
+        
+        // 4: Skip Track (Cycles to next found song file dynamically)
+        else if (i == 4) {
+          currentSongIndex = (currentSongIndex + 1) % playList.size();
+          songTitle = playList.get(currentSongIndex);
+          loadTrack(songTitle);
+        }
+        
+        // 5: Faster Forward (Skip 10 seconds)
+        else if (i == 5) {
+          song.skip(10000);
+        }
+        
+        // 6: Loop Continuously
+        else if (i == 6) {
+          song.loop();
+        }
+        
+        // 7: Unloop
+        else if (i == 7) {
+          song.play(); 
+        }
+        
+        // 8: Loop Once
+        else if (i == 8) {
+          song.loop(1);
+        }
+        
+        // 9: Volume Up
+        else if (i == 9) {
+          float currentGain = song.getGain();
+          song.setGain(currentGain + 2.0);
+        }
+        
+        // 10: Volume Down
+        else if (i == 10) {
+          float currentGain = song.getGain();
+          song.setGain(currentGain - 2.0);
+        }
+      }
+      break; 
+    }
   }
 }
 
@@ -392,8 +547,8 @@ void drawMusicIcon(int index, float x, float y, float w, float h) {
 
 void stop() {
 
-  song.close();
-  click.close();
+  if (song != null) song.close();
+  if (click != null) click.close();
 
   minim.stop();
 
