@@ -18,6 +18,11 @@ String songTitle = "";
 StringList playList;
 int currentSongIndex = 0;
 String absoluteMusicPath = "";
+String absoluteImagePath = ""; // Track dynamic image folder path
+
+// Image Variables
+PImage neverImg;
+PImage pokemonImg;
 
 // App Variables
 float AppWidth, AppHeight, GUIWidth, GUIHeight;
@@ -31,9 +36,10 @@ float midX, midW;
 
 float rightX, rightW;
 
-float squareSize, squareX, squareY;
+float squareSize, squareX, squareY, squareHeight; // Added squareHeight to separate width and height
 
 float totalAvailableW, gap, sectionW, sectionH, sectionY;
+float buttonsStartX; // Added to keep track of where centered buttons begin
 
 void setup() {
 
@@ -125,26 +131,36 @@ void setup() {
   midX = AppWidth * 500 / GUIWidth;
   midW = AppWidth * 620 / GUIWidth;
 
-  // RIGHT SIDE
-  rightX = AppWidth * 1170 / GUIWidth;
-  rightW = AppWidth * 700 / GUIWidth;
+  // RIGHT SIDE - Automatically snaps to Left Box and fills screen
+  rightX = leftX + leftW;
+  rightW = AppWidth - rightX - leftX;
 
-  // BIG SQUARE
+  // CURRENTLY PLAYING BOX - Height restricted to prevent spilling over the bottom
   squareSize = rightW - 100;
+  squareHeight = leftH * 0.70; // Hard limit at 70% of the screen panel height
+  squareX = rightX + (rightW - squareSize) / 2;
+  squareY = edgePadding + (innerPad * 4);
 
-  squareX = rightX + (squareSize / 11);
-  squareY = edgePadding + (squareSize / 4);
-
-  // BUTTONS
-  totalAvailableW = rightW - (innerPad * 2);
-
-  gap = AppWidth * 5 / GUIWidth;
-
-  sectionW = (totalAvailableW - (gap * 10)) / 11;
-
+  // BUTTONS - Perfectly scaled and centered horizontally
+  gap = AppWidth * 8 / GUIWidth;
+  sectionW = AppWidth * 60 / GUIWidth;
   sectionH = AppHeight * 60 / GUIHeight;
 
-  sectionY = (edgePadding + leftH) - sectionH - innerPad;
+  float totalButtonsWidth = (11 * sectionW) + (10 * gap);
+  buttonsStartX = rightX + (rightW - totalButtonsWidth) / 2;
+
+  sectionY = (edgePadding + leftH) - sectionH - (innerPad * 4); 
+
+  // -------------------------
+  // LOAD IMAGES (FIXED PATHS)
+  // -------------------------
+
+  neverImg = loadImage("../Dependencies/Images/NeverImage.jpg");
+  pokemonImg = loadImage("../Dependencies/Images/PokemonImage.png");
+  
+  // Debug validation to console
+  if (neverImg == null) println("ERROR: NeverImage.png failed to load.");
+  if (pokemonImg == null) println("ERROR: PokemonImage.png failed to load.");
 }
 
 // Helper utility to switch tracks cleanly across case-sensitive file naming systems
@@ -193,12 +209,58 @@ void draw() {
   // -------------------------
   rect(leftX, edgePadding, leftW, leftH);
 
-  rect(
-    leftX + innerPad,
-    edgePadding + innerPad,
-    leftSectionW,
-    leftTopH
-  );
+  // The blank box above songs
+  float topBoxX = leftX + innerPad;
+  float topBoxY = edgePadding + innerPad;
+  
+  // Default box background
+  fill(255);
+  rect(topBoxX, topBoxY, leftSectionW, leftTopH);
+
+  // RENDER CORRESPONDING IMAGES DYNAMICALLY WITH ASPECT RATIO FIX
+  String cleanTitle = songTitle.trim().toLowerCase();
+  PImage imgToDraw = null;
+
+  if (cleanTitle.contains("never") && neverImg != null) {
+    imgToDraw = neverImg;
+  } else if (cleanTitle.contains("pokemon") && pokemonImg != null) {
+    imgToDraw = pokemonImg;
+  }
+
+  if (imgToDraw != null) {
+    // Calculate aspect ratios
+    float boxWidth = leftSectionW - 4;
+    float boxHeight = leftTopH - 4;
+    
+    float imgRatio = (float) imgToDraw.width / (float) imgToDraw.height;
+    float boxRatio = boxWidth / boxHeight;
+    
+    float drawW, drawH;
+    
+    if (imgRatio > boxRatio) {
+      // Image is wider than the container aspect ratio
+      drawW = boxWidth;
+      drawH = boxWidth / imgRatio;
+    } else {
+      // Image is taller than the container aspect ratio
+      drawH = boxHeight;
+      drawW = boxHeight * imgRatio;
+    }
+    
+    // Center the image inside the box boundary adjustments
+    float drawX = topBoxX + 2 + (boxWidth - drawW) / 2;
+    float drawY = topBoxY + 2 + (boxHeight - drawH) / 2;
+    
+    image(imgToDraw, drawX, drawY, drawW, drawH);
+  } else {
+    // Structural visual indicator: turns gray if an image file is missing or title doesn't match
+    fill(220);
+    rect(topBoxX + 2, topBoxY + 2, leftSectionW - 4, leftTopH - 4);
+    fill(120);
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text("[ No Cover Art Image Loaded ]", topBoxX + leftSectionW/2, topBoxY + leftTopH/2);
+  }
 
   // Render the playlist slots with titles dynamically populated
   for (int i = 0; i < 8; i++) {
@@ -217,25 +279,20 @@ void draw() {
   }
 
   // -------------------------
-  // MIDDLE BOX
-  // -------------------------
-  fill(255);
-  rect(midX, edgePadding, midW, leftH);
-
-  // -------------------------
   // RIGHT BOX
   // -------------------------
+  fill(255);
   rect(rightX, edgePadding, rightW, leftH);
 
   // -------------------------
-  // BIG SQUARE
+  // CURRENTLY PLAYING BOX
   // -------------------------
   fill(250);
 
-  rect(squareX, squareY, squareSize, squareSize);
+  rect(squareX, squareY, squareSize, squareHeight);
 
   // =================================================
-  // MUSIC DISPLAY INSIDE THE BIG SQUARE
+  // MUSIC DISPLAY INSIDE THE BOX
   // =================================================
 
   fill(0);
@@ -248,18 +305,18 @@ void draw() {
   text(
     "CURRENTLY PLAYING",
     squareX + squareSize/2,
-    squareY + 120
+    squareY + (squareHeight * 0.2)
   );
 
   // SONG TITLE
   fill(0, 180, 80);
 
-  textSize(45); // Adjusted down slightly from 60 to prevent long titles wrapping outside the box
+  textSize(45); 
 
   text(
     songTitle,
     squareX + squareSize/2,
-    squareY + squareSize/2
+    squareY + (squareHeight * 0.5)
   );
 
   // STATUS
@@ -272,7 +329,7 @@ void draw() {
     text(
       "NOW PLAYING",
       squareX + squareSize/2,
-      squareY + squareSize - 120
+      squareY + (squareHeight * 0.8)
     );
 
   } else {
@@ -280,7 +337,7 @@ void draw() {
     text(
       "STOPPED",
       squareX + squareSize/2,
-      squareY + squareSize - 120
+      squareY + (squareHeight * 0.8)
     );
   }
 
@@ -289,7 +346,7 @@ void draw() {
   // -------------------------
   for (int i = 0; i < 11; i++) {
 
-    float xPos = rightX + innerPad + (i * (sectionW + gap));
+    float xPos = buttonsStartX + (i * (sectionW + gap));
 
     // Hover Effect
     if (
@@ -321,7 +378,7 @@ void mousePressed() {
 
   // Process Controls Click Mapping Loop
   for (int i = 0; i < 11; i++) {
-    float xPos = rightX + innerPad + (i * (sectionW + gap));
+    float xPos = buttonsStartX + (i * (sectionW + gap));
 
     if (mouseX >= xPos && mouseX <= xPos + sectionW &&
         mouseY >= sectionY && mouseY <= sectionY + sectionH) {
