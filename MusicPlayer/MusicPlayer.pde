@@ -9,54 +9,31 @@ import ddf.minim.ugens.*;
 import java.io.File;
 import java.io.FilenameFilter;
 
-// Music Variables
 Minim minim;
-AudioPlayer song;
-AudioPlayer click;
+AudioPlayer song, click;
 
 String songTitle = "";
 StringList playList;
 int currentSongIndex = 0;
 String absoluteMusicPath = "";
-String absoluteImagePath = ""; // Track dynamic image folder path
 
-// Image Variables
-PImage neverImg;
-PImage pokemonImg;
-
-// App Variables
+PImage neverImg, pokemonImg;
 float AppWidth, AppHeight, GUIWidth, GUIHeight;
-
 float edgePadding, innerPad;
-
-float leftX, leftW, leftH;
-float leftSectionW, leftTopH, leftSmallH;
-
-float midX, midW;
-
-float rightX, rightW;
-
-float squareSize, squareX, squareY, squareHeight; // Added squareHeight to separate width and height
-
-float totalAvailableW, gap, sectionW, sectionH, sectionY;
-float buttonsStartX; // Added to keep track of where centered buttons begin
+float leftX, leftW, leftH, leftSectionW, leftTopH, leftSmallH;
+float midX, midW, rightX, rightW;
+float squareSize, squareX, squareY, squareHeight;
+float totalAvailableW, gap, sectionW, sectionH, sectionY, buttonsStartX;
 
 void setup() {
-
   fullScreen();
-
   background(240);
-
   rectMode(CORNER);
   ellipseMode(CENTER);
 
-  // -------------------------
-  // MUSIC DIRECTORY SCANNING
-  // -------------------------
   minim = new Minim(this);
   playList = new StringList();
   
-  // Try 3 different ways to locate your music folder path
   String[] pathChoices = {
     sketchPath("../../Dependencies/Music/"),
     sketchPath("../Dependencies/Music/"),
@@ -73,7 +50,6 @@ void setup() {
     }
   }
   
-  // Scan the folder if found
   if (folder != null) {
     println("SUCCESS: Found music folder at: " + absoluteMusicPath);
     String[] files = folder.list(new FilenameFilter() {
@@ -82,17 +58,14 @@ void setup() {
       }
     });
     
-    if (files != null && files.length > 0) {
+    if (files != null) {
       for (String file : files) {
         println("FOUND AUDIO FILE: " + file);
-        // Save the clean display title (without .mp3)
-        String cleanName = file.substring(0, file.lastIndexOf('.'));
-        playList.append(cleanName);
+        playList.append(file.substring(0, file.lastIndexOf('.')));
       }
     }
   }
 
-  // Fallback protection if zero files were scanned
   if (playList.size() == 0) {
     println("WARNING: No music folder found. Defaulting to 'Never'.");
     playList.append("Never"); 
@@ -101,513 +74,172 @@ void setup() {
   songTitle = playList.get(currentSongIndex);
   loadTrack(songTitle);
 
-  String clickPath = "../../Dependencies/SoundEffects/MouseClick.mp3";
-  click = minim.loadFile(clickPath);
+  click = minim.loadFile("../../Dependencies/SoundEffects/MouseClick.mp3");
 
-  // -------------------------
-  // GUI SIZES
-  // -------------------------
+  // GUI Calculations
   AppWidth = width;
   AppHeight = height;
-
   GUIWidth = 1920;
   GUIHeight = 1080;
 
   edgePadding = AppHeight * 50 / GUIHeight;
   innerPad = AppWidth * 10 / GUIWidth;
 
-  // LEFT SIDE
   leftX = AppWidth * 50 / GUIWidth;
   leftW = AppWidth * 400 / GUIWidth;
   leftH = AppHeight * 980 / GUIHeight;
-
   leftSectionW = leftW - (innerPad * 2);
-
   leftTopH = AppHeight * 300 / GUIHeight;
-
   leftSmallH = (leftH - leftTopH - (innerPad * 11)) / 7.5;
 
-  // MIDDLE
   midX = AppWidth * 500 / GUIWidth;
   midW = AppWidth * 620 / GUIWidth;
 
-  // RIGHT SIDE - Automatically snaps to Left Box and fills screen
   rightX = leftX + leftW;
   rightW = AppWidth - rightX - leftX;
 
-  // CURRENTLY PLAYING BOX - Height restricted to prevent spilling over the bottom
   squareSize = rightW - 100;
-  squareHeight = leftH * 0.70; // Hard limit at 70% of the screen panel height
+  squareHeight = leftH * 0.70;
   squareX = rightX + (rightW - squareSize) / 2;
   squareY = edgePadding + (innerPad * 4);
 
-  // BUTTONS - Perfectly scaled and centered horizontally
   gap = AppWidth * 8 / GUIWidth;
   sectionW = AppWidth * 60 / GUIWidth;
   sectionH = AppHeight * 60 / GUIHeight;
 
   float totalButtonsWidth = (11 * sectionW) + (10 * gap);
   buttonsStartX = rightX + (rightW - totalButtonsWidth) / 2;
-
   sectionY = (edgePadding + leftH) - sectionH - (innerPad * 4); 
-
-  // -------------------------
-  // LOAD IMAGES (FIXED PATHS)
-  // -------------------------
 
   neverImg = loadImage("../Dependencies/Images/NeverImage.jpg");
   pokemonImg = loadImage("../Dependencies/Images/PokemonImage.png");
   
-  // Debug validation to console
   if (neverImg == null) println("ERROR: NeverImage.png failed to load.");
   if (pokemonImg == null) println("ERROR: PokemonImage.png failed to load.");
 }
 
-// Helper utility to switch tracks cleanly across case-sensitive file naming systems
 void loadTrack(String title) {
-  if (song != null) {
-    song.close();
-  }
+  if (song != null) song.close();
   
-  // Try loading directly from our discovered folder if we found one
   if (!absoluteMusicPath.equals("")) {
-    File lowerCheck = new File(absoluteMusicPath + title + ".mp3");
-    if (lowerCheck.exists()) {
-      song = minim.loadFile(absoluteMusicPath + title + ".mp3");
-    } else {
-      song = minim.loadFile(absoluteMusicPath + title + ".MP3");
-    }
+    String p = absoluteMusicPath + title;
+    song = new File(p + ".mp3").exists() ? minim.loadFile(p + ".mp3") : minim.loadFile(p + ".MP3");
   } 
   
-  // Fallback to original hardcoded relative path format if automatic detection missed
   if (song == null) {
-    String lowercasePath = "../../Dependencies/Music/" + title + ".mp3";
-    String uppercasePath = "../../Dependencies/Music/" + title + ".MP3";
-    File lowFile = new File(sketchPath(lowercasePath));
-    if (lowFile.exists()) {
-      song = minim.loadFile(lowercasePath);
-    } else {
-      song = minim.loadFile(uppercasePath);
-    }
+    String p = "../../Dependencies/Music/" + title;
+    song = new File(sketchPath(p + ".mp3")).exists() ? minim.loadFile(p + ".mp3") : minim.loadFile(p + ".MP3");
   }
   
-  if (song != null) {
-    song.play();
-  }
+  if (song != null) song.play();
 }
 
 void draw() {
-
   background(240);
-
   fill(255);
   stroke(0);
   strokeWeight(2);
 
-  // -------------------------
   // LEFT BOX
-  // -------------------------
   rect(leftX, edgePadding, leftW, leftH);
-
-  // The blank box above songs
   float topBoxX = leftX + innerPad;
   float topBoxY = edgePadding + innerPad;
-  
-  // Default box background
-  fill(255);
   rect(topBoxX, topBoxY, leftSectionW, leftTopH);
 
-  // RENDER CORRESPONDING IMAGES DYNAMICALLY WITH ASPECT RATIO FIX
   String cleanTitle = songTitle.trim().toLowerCase();
   PImage imgToDraw = null;
-
-  if (cleanTitle.contains("never") && neverImg != null) {
-    imgToDraw = neverImg;
-  } else if (cleanTitle.contains("pokemon") && pokemonImg != null) {
-    imgToDraw = pokemonImg;
-  }
+  if (cleanTitle.contains("never")) imgToDraw = neverImg;
+  else if (cleanTitle.contains("pokemon")) imgToDraw = pokemonImg;
 
   if (imgToDraw != null) {
-    // Calculate aspect ratios
-    float boxWidth = leftSectionW - 4;
-    float boxHeight = leftTopH - 4;
-    
-    float imgRatio = (float) imgToDraw.width / (float) imgToDraw.height;
-    float boxRatio = boxWidth / boxHeight;
-    
-    float drawW, drawH;
-    
-    if (imgRatio > boxRatio) {
-      // Image is wider than the container aspect ratio
-      drawW = boxWidth;
-      drawH = boxWidth / imgRatio;
-    } else {
-      // Image is taller than the container aspect ratio
-      drawH = boxHeight;
-      drawW = boxHeight * imgRatio;
-    }
-    
-    // Center the image inside the box boundary adjustments
-    float drawX = topBoxX + 2 + (boxWidth - drawW) / 2;
-    float drawY = topBoxY + 2 + (boxHeight - drawH) / 2;
-    
-    image(imgToDraw, drawX, drawY, drawW, drawH);
+    float boxW = leftSectionW - 4, boxH = leftTopH - 4;
+    float imgRatio = (float) imgToDraw.width / imgToDraw.height;
+    float boxRatio = boxW / boxH;
+    float drawW = (imgRatio > boxRatio) ? boxW : boxH * imgRatio;
+    float drawH = (imgRatio > boxRatio) ? boxW / imgRatio : boxH;
+    image(imgToDraw, topBoxX + 2 + (boxW - drawW)/2, topBoxY + 2 + (boxH - drawH)/2, drawW, drawH);
   } else {
-    // Structural visual indicator: turns gray if an image file is missing or title doesn't match
     fill(220);
     rect(topBoxX + 2, topBoxY + 2, leftSectionW - 4, leftTopH - 4);
-    fill(120);
-    textSize(14);
-    textAlign(CENTER, CENTER);
+    fill(120); textSize(14); textAlign(CENTER, CENTER);
     text("[ No Cover Art Image Loaded ]", topBoxX + leftSectionW/2, topBoxY + leftTopH/2);
   }
 
-  // Render the playlist slots with titles dynamically populated
   for (int i = 0; i < 8; i++) {
     float boxY = edgePadding + innerPad + leftTopH + innerPad + (i * (leftSmallH + innerPad/2));
-    
-    fill(255);
-    rect(leftX + innerPad, boxY, leftSectionW, leftSmallH);
-    
-    // Write track names onto the sidebar list slots if they exist
+    fill(255); rect(leftX + innerPad, boxY, leftSectionW, leftSmallH);
     if (i < playList.size()) {
-      fill(50);
-      textSize(16);
-      textAlign(LEFT, CENTER);
+      fill(50); textSize(16); textAlign(LEFT, CENTER);
       text(playList.get(i), leftX + (innerPad * 2), boxY + (leftSmallH / 2));
     }
   }
 
-  // -------------------------
-  // RIGHT BOX
-  // -------------------------
-  fill(255);
-  rect(rightX, edgePadding, rightW, leftH);
+  // RIGHT BOX & PLAYER DISPLAY
+  fill(255); rect(rightX, edgePadding, rightW, leftH);
+  fill(250); rect(squareX, squareY, squareSize, squareHeight);
 
-  // -------------------------
-  // CURRENTLY PLAYING BOX
-  // -------------------------
-  fill(250);
+  fill(0); textAlign(CENTER, CENTER); textSize(28);
+  text("CURRENTLY PLAYING", squareX + squareSize/2, squareY + (squareHeight * 0.2));
+  
+  fill(0, 180, 80); textSize(45);
+  text(songTitle, squareX + squareSize/2, squareY + (squareHeight * 0.5));
 
-  rect(squareX, squareY, squareSize, squareHeight);
+  fill(80); textSize(30);
+  text((song != null && song.isPlaying()) ? "NOW PLAYING" : "STOPPED", squareX + squareSize/2, squareY + (squareHeight * 0.8));
 
-  // =================================================
-  // MUSIC DISPLAY INSIDE THE BOX
-  // =================================================
-
-  fill(0);
-
-  textAlign(CENTER, CENTER);
-
-  // NOW PLAYING
-  textSize(28);
-
-  text(
-    "CURRENTLY PLAYING",
-    squareX + squareSize/2,
-    squareY + (squareHeight * 0.2)
-  );
-
-  // SONG TITLE
-  fill(0, 180, 80);
-
-  textSize(45); 
-
-  text(
-    songTitle,
-    squareX + squareSize/2,
-    squareY + (squareHeight * 0.5)
-  );
-
-  // STATUS
-  fill(80);
-
-  textSize(30);
-
-  if (song != null && song.isPlaying()) {
-
-    text(
-      "NOW PLAYING",
-      squareX + squareSize/2,
-      squareY + (squareHeight * 0.8)
-    );
-
-  } else {
-
-    text(
-      "STOPPED",
-      squareX + squareSize/2,
-      squareY + (squareHeight * 0.8)
-    );
-  }
-
-  // -------------------------
-  // MUSIC BUTTONS
-  // -------------------------
+  // BUTTON INTERACTION LOOP
   for (int i = 0; i < 11; i++) {
-
     float xPos = buttonsStartX + (i * (sectionW + gap));
-
-    // Hover Effect
-    if (
-      mouseX >= xPos &&
-      mouseX <= xPos + sectionW &&
-      mouseY >= sectionY &&
-      mouseY <= sectionY + sectionH
-    ) {
-
-      fill(200);
-
-    } else {
-
-      fill(245);
-    }
-
+    fill((mouseX >= xPos && mouseX <= xPos + sectionW && mouseY >= sectionY && mouseY <= sectionY + sectionH) ? 200 : 245);
     rect(xPos, sectionY, sectionW, sectionH);
-
     drawMusicIcon(i, xPos, sectionY, sectionW, sectionH);
   }
 }
 
 void mousePressed() {
+  if (click != null) { click.rewind(); click.play(); }
 
-  if (click != null) {
-    click.rewind();
-    click.play();
-  }
-
-  // Process Controls Click Mapping Loop
   for (int i = 0; i < 11; i++) {
     float xPos = buttonsStartX + (i * (sectionW + gap));
-
-    if (mouseX >= xPos && mouseX <= xPos + sectionW &&
-        mouseY >= sectionY && mouseY <= sectionY + sectionH) {
-      
+    if (mouseX >= xPos && mouseX <= xPos + sectionW && mouseY >= sectionY && mouseY <= sectionY + sectionH) {
       if (song != null) {
-        
-        // 0: Play
-        if (i == 0) {
-          song.play();
-        }
-        
-        // 1: Pause
-        else if (i == 1) {
-          song.pause();
-        }
-        
-        // 2: Stop
-        else if (i == 2) {
-          song.pause();
-          song.rewind();
-        }
-        
-        // 3: Fast Forward (Skip 5 seconds)
-        else if (i == 3) {
-          song.skip(5000); 
-        }
-        
-        // 4: Skip Track (Cycles to next found song file dynamically)
-        else if (i == 4) {
-          currentSongIndex = (currentSongIndex + 1) % playList.size();
-          songTitle = playList.get(currentSongIndex);
-          loadTrack(songTitle);
-        }
-        
-        // 5: Faster Forward (Skip 10 seconds)
-        else if (i == 5) {
-          song.skip(10000);
-        }
-        
-        // 6: Loop Continuously
-        else if (i == 6) {
-          song.loop();
-        }
-        
-        // 7: Unloop
-        else if (i == 7) {
-          song.play(); 
-        }
-        
-        // 8: Loop Once
-        else if (i == 8) {
-          song.loop(1);
-        }
-        
-        // 9: Volume Up
-        else if (i == 9) {
-          float currentGain = song.getGain();
-          song.setGain(currentGain + 2.0);
-        }
-        
-        // 10: Volume Down
-        else if (i == 10) {
-          float currentGain = song.getGain();
-          song.setGain(currentGain - 2.0);
-        }
+        if (i == 0)      song.play();
+        else if (i == 1) song.pause();
+        else if (i == 2) { song.pause(); song.rewind(); }
+        else if (i == 3) song.skip(5000);
+        else if (i == 4) { currentSongIndex = (currentSongIndex + 1) % playList.size(); songTitle = playList.get(currentSongIndex); loadTrack(songTitle); }
+        else if (i == 5) song.skip(10000);
+        else if (i == 6) song.loop();
+        else if (i == 7) song.play();
+        else if (i == 8) song.loop(1);
+        else if (i == 9) song.setGain(song.getGain() + 2.0);
+        else if (i == 10) song.setGain(song.getGain() - 2.0);
       }
-      break; 
+      break;
     }
   }
 }
 
-// ------------------------------------------------
-// ICONS
-// ------------------------------------------------
 void drawMusicIcon(int index, float x, float y, float w, float h) {
+  float centerX = x + w/2, centerY = y + h/2, s = w * 0.4;
+  fill(50); stroke(50); strokeWeight(2);
 
-  float centerX = x + w/2;
-  float centerY = y + h/2;
-
-  float s = w * 0.4;
-
-  fill(50);
-
-  stroke(50);
-
-  strokeWeight(2);
-
-  // Play
-  if (index == 0) {
-
-    triangle(
-      centerX - s/2,
-      centerY - s/2,
-      centerX - s/2,
-      centerY + s/2,
-      centerX + s/2,
-      centerY
-    );
-  }
-
-  // Pause
-  else if (index == 1) {
-
-    rect(centerX - s/2, centerY - s/2, s/3, s);
-    rect(centerX + s/6, centerY - s/2, s/3, s);
-  }
-
-  // Stop
-  else if (index == 2) {
-
-    rect(centerX - s/2, centerY - s/2, s, s);
-  }
-
-  // Fast Forward
-  else if (index == 3) {
-
-    triangle(centerX - s/2, centerY - s/2,
-             centerX - s/2, centerY + s/2,
-             centerX, centerY);
-
-    triangle(centerX, centerY - s/2,
-             centerX, centerY + s/2,
-             centerX + s/2, centerY);
-  }
-
-  // Skip
-  else if (index == 4) {
-
-    triangle(centerX - s/2, centerY - s/2,
-             centerX - s/2, centerY + s/2,
-             centerX, centerY);
-
-    rect(centerX, centerY - s/2, s/4, s);
-  }
-
-  // Faster Forward
-  else if (index == 5) {
-
-    triangle(centerX - s/2, centerY - s/2,
-             centerX - s/2, centerY + s/2,
-             centerX - s/6, centerY);
-
-    triangle(centerX - s/6, centerY - s/2,
-             centerX - s/6, centerY + s/2,
-             centerX + s/6, centerY);
-
-    triangle(centerX + s/6, centerY - s/2,
-             centerX + s/6, centerY + s/2,
-             centerX + s/2, centerY);
-  }
-
-  // Loop
-  else if (index == 6) {
-
-    noFill();
-
-    arc(centerX, centerY, s, s, 0, PI + HALF_PI);
-
-    fill(50);
-
-    triangle(
-      centerX + s/2,
-      centerY,
-      centerX + s/3,
-      centerY - s/6,
-      centerX + s/2,
-      centerY - s/3
-    );
-  }
-
-  // Unloop
-  else if (index == 7) {
-
-    noFill();
-
-    ellipse(centerX, centerY, s, s);
-
-    line(
-      centerX - s/2,
-      centerY + s/2,
-      centerX + s/2,
-      centerY - s/2
-    );
-  }
-
-  // Loop Once
-  else if (index == 8) {
-
-    noFill();
-
-    arc(centerX, centerY, s, s, 0, PI + HALF_PI);
-
-    fill(50);
-
-    textSize(16);
-
-    textAlign(CENTER, CENTER);
-
-    text("1", centerX, centerY);
-  }
-
-  // Volume Up
-  else if (index == 9) {
-
-    rect(centerX - s/2, centerY - s/4, s/4, s/2);
-
-    line(centerX + s/4, centerY,
-         centerX + s/2, centerY);
-
-    line(centerX + s/3, centerY - s/6,
-         centerX + s/3, centerY + s/6);
-  }
-
-  // Volume Down
-  else if (index == 10) {
-
-    rect(centerX - s/2, centerY - s/4, s/4, s/2);
-
-    line(centerX + s/4, centerY,
-         centerX + s/2, centerY);
-  }
+  if (index == 0)      triangle(centerX - s/2, centerY - s/2, centerX - s/2, centerY + s/2, centerX + s/2, centerY);
+  else if (index == 1) { rect(centerX - s/2, centerY - s/2, s/3, s); rect(centerX + s/6, centerY - s/2, s/3, s); }
+  else if (index == 2) rect(centerX - s/2, centerY - s/2, s, s);
+  else if (index == 3) { triangle(centerX - s/2, centerY - s/2, centerX - s/2, centerY + s/2, centerX, centerY); triangle(centerX, centerY - s/2, centerX, centerY + s/2, centerX + s/2, centerY); }
+  else if (index == 4) { triangle(centerX - s/2, centerY - s/2, centerX - s/2, centerY + s/2, centerX, centerY); rect(centerX, centerY - s/2, s/4, s); }
+  else if (index == 5) { triangle(centerX - s/2, centerY - s/2, centerX - s/2, centerY + s/2, centerX - s/6, centerY); triangle(centerX - s/6, centerY - s/2, centerX - s/6, centerY + s/2, centerX + s/6, centerY); triangle(centerX + s/6, centerY - s/2, centerX + s/6, centerY + s/2, centerX + s/2, centerY); }
+  else if (index == 6) { noFill(); arc(centerX, centerY, s, s, 0, PI + HALF_PI); fill(50); triangle(centerX + s/2, centerY, centerX + s/3, centerY - s/6, centerX + s/2, centerY - s/3); }
+  else if (index == 7) { noFill(); ellipse(centerX, centerY, s, s); line(centerX - s/2, centerY + s/2, centerX + s/2, centerY - s/2); }
+  else if (index == 8) { noFill(); arc(centerX, centerY, s, s, 0, PI + HALF_PI); fill(50); textSize(16); textAlign(CENTER, CENTER); text("1", centerX, centerY); }
+  else if (index == 9) { rect(centerX - s/2, centerY - s/4, s/4, s/2); line(centerX + s/4, centerY, centerX + s/2, centerY); line(centerX + s/3, centerY - s/6, centerX + s/3, centerY + s/6); }
+  else if (index == 10) { rect(centerX - s/2, centerY - s/4, s/4, s/2); line(centerX + s/4, centerY, centerX + s/2, centerY); }
 }
 
 void stop() {
-
   if (song != null) song.close();
   if (click != null) click.close();
-
   minim.stop();
-
   super.stop();
 }
