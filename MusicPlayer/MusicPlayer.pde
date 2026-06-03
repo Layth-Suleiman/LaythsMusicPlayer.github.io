@@ -1,6 +1,6 @@
 /* Layths's Music App, Final Project */
 
-// --- LIBRARIES & IMPORTS ---
+//  LIBRARIES & IMPORTS
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 import ddf.minim.effects.*;
@@ -10,7 +10,7 @@ import ddf.minim.ugens.*;
 import java.io.File;
 import java.io.FilenameFilter;
 
-// --- GLOBAL VARIABLES & STATE TRACKING ---
+// GLOBAL VARIABLES  
 Minim minim;
 AudioPlayer song, click;
 
@@ -27,7 +27,7 @@ float midX, midW, rightX, rightW;
 float squareSize, squareX, squareY, squareHeight;
 float totalAvailableW, gap, sectionW, sectionH, sectionY, buttonsStartX;
 
-// ---  Player Setup ---
+//   Player Setup 
 void setup() {
   fullScreen();
   background(240);
@@ -54,7 +54,7 @@ void setup() {
     }
   }
   
-  // --- READING MP3 FILES INTO THE PLAYLIST ---
+  //  READING MP3 FILES INTO THE PLAYLIST 
   if (folder != null) {
     println("SUCCESS: Found music folder at: " + absoluteMusicPath);
     String[] files = folder.list(new FilenameFilter() {
