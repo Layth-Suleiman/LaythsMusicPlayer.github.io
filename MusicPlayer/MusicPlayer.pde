@@ -27,7 +27,7 @@ float midX, midW, rightX, rightW;
 float squareSize, squareX, squareY, squareHeight;
 float totalAvailableW, gap, sectionW, sectionH, sectionY, buttonsStartX;
 
-// --- INITIAL APP INITIALIZATION ---
+// ---  Player Setup ---
 void setup() {
   fullScreen();
   background(240);
@@ -37,7 +37,7 @@ void setup() {
   minim = new Minim(this);
   playList = new StringList();
   
-  // --- SCANNING SYSTEMS FOR THE MUSIC FOLDER ---
+  //  SCANNING SYSTEMS FOR THE MUSIC FOLDER 
   String[] pathChoices = {
     sketchPath("../../Dependencies/Music/"),
     sketchPath("../Dependencies/Music/"),
@@ -81,7 +81,7 @@ void setup() {
 
   click = minim.loadFile("../../Dependencies/SoundEffects/MouseClick.mp3");
 
-  // --- RESPONSIVE GUI MATH CALCULATIONS ---
+  //  GUI MATH CALCULATIONS 
   AppWidth = width;
   AppHeight = height;
   GUIWidth = 1920;
@@ -116,7 +116,7 @@ void setup() {
   buttonsStartX = rightX + (rightW - totalButtonsWidth) / 2;
   sectionY = (edgePadding + leftH) - sectionH - (innerPad * 4); 
 
-  // --- LOADING IMAGE ASSETS INTO MEMORY ---
+  // LOADING IMAGE ASSETS INTO MEMORY 
   neverImg = loadImage("../Dependencies/Images/NeverImage.jpg");
   pokemonImg = loadImage("../Dependencies/Images/PokemonImage.png");
   
@@ -124,7 +124,7 @@ void setup() {
   if (pokemonImg == null) println("ERROR: PokemonImage.png failed to load.");
 }
 
-// --- TRACK LOADING & STREAM MANAGEMENT ---
+//  TRACK LOADING & STREAM MANAGEMENT 
 void loadTrack(String title) {
   if (song != null) song.close();
   
@@ -148,19 +148,19 @@ void draw() {
   stroke(0);
   strokeWeight(2);
 
-  // --- DRAWING THE LEFT PANEL LAYOUT ---
+  //  DRAWING THE LEFT PANEL LAYOUT 
   rect(leftX, edgePadding, leftW, leftH);
   float topBoxX = leftX + innerPad;
   float topBoxY = edgePadding + innerPad;
   rect(topBoxX, topBoxY, leftSectionW, leftTopH);
 
-  // --- PROCESSING ALIASES FOR COVERS ---
+  //  PROCESSING FOR COVERS 
   String cleanTitle = songTitle.trim().toLowerCase();
   PImage imgToDraw = null;
   if (cleanTitle.contains("never")) imgToDraw = neverImg;
   else if (cleanTitle.contains("pokemon")) imgToDraw = pokemonImg;
 
-  // --- DRAWING AND AUTO-SCALING COVER ART ---
+  // --- DRAWING AND AUTOSCALING COVER ART to size
   if (imgToDraw != null) {
     float boxW = leftSectionW - 4, boxH = leftTopH - 4;
     float imgRatio = (float) imgToDraw.width / imgToDraw.height;
@@ -175,7 +175,7 @@ void draw() {
     text("[ No Cover Art Image Loaded ]", topBoxX + leftSectionW/2, topBoxY + leftTopH/2);
   }
 
-  // --- RENDERING THE PLAYLIST TRACK LIST ---
+  //  RENDERING THE PLAYLIST TRACK LIST 
   for (int i = 0; i < 8; i++) {
     float boxY = edgePadding + innerPad + leftTopH + innerPad + (i * (leftSmallH + innerPad/2));
     fill(255); rect(leftX + innerPad, boxY, leftSectionW, leftSmallH);
@@ -185,7 +185,7 @@ void draw() {
     }
   }
 
-  // --- RENDERING THE RIGHT PANEL & TRACK META-INFO ---
+  // -RENDERING THE RIGHT PANEL & TRACK INFO 
   fill(255); rect(rightX, edgePadding, rightW, leftH);
   fill(250); rect(squareX, squareY, squareSize, squareHeight);
 
@@ -198,7 +198,7 @@ void draw() {
   fill(80); textSize(30);
   text((song != null && song.isPlaying()) ? "NOW PLAYING" : "STOPPED", squareX + squareSize/2, squareY + (squareHeight * 0.8));
 
-  // --- CONTROL ROW RENDERING & HOVER HIGHLIGHTS ---
+  //  CONTROL ROW RENDERING AND THE HOVER HIGHLIGHTS
   for (int i = 0; i < 11; i++) {
     float xPos = buttonsStartX + (i * (sectionW + gap));
     fill((mouseX >= xPos && mouseX <= xPos + sectionW && mouseY >= sectionY && mouseY <= sectionY + sectionH) ? 200 : 245);
@@ -232,7 +232,7 @@ void mousePressed() {
   }
 }
 
-// --- PROCEDURAL ICON DRAWING SHAPES ---
+//  PROCEDURAL ICON DRAWING SHAPES 
 void drawMusicIcon(int index, float x, float y, float w, float h) {
   float centerX = x + w/2, centerY = y + h/2, s = w * 0.4;
   fill(50); stroke(50); strokeWeight(2);
@@ -250,7 +250,7 @@ void drawMusicIcon(int index, float x, float y, float w, float h) {
   else if (index == 10) { rect(centerX - s/2, centerY - s/4, s/4, s/2); line(centerX + s/4, centerY, centerX + s/2, centerY); }
 }
 
-// --- MEMORY CLEANUP ON EXIT ---
+//  MEMORY CLEANUP ON EXIT 
 void stop() {
   if (song != null) song.close();
   if (click != null) click.close();
